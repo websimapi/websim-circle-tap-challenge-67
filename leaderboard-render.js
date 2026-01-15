@@ -37,39 +37,25 @@ export function renderMyScores(userProfile) {
         </div>
     `;
 
-    // Dropdowns HTML
-    const dropdownsHtml = difficulties.map(diff => {
+    // Difficulty Cards
+    const cardsHtml = difficulties.map(diff => {
         const scores = userProfile[diff] || [];
-        const sortedScores = [...scores].sort((a, b) => b.score - a.score);
+        const bestScore = scores.length > 0 ? Math.max(...scores.map(s => s.score)) : '-';
         
-        const scoreListHtml = sortedScores.map((game, index) => {
-            const watchIcon = `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>`;
-            return `
-            <div class="score-entry">
-                <div class="score-details">
-                    <span class="score-entry-score">Score: ${game.score}</span>
-                    <span class="score-entry-level">Level: ${game.level || 1}</span>
-                    <small class="score-entry-date">${new Date(game.timestamp).toLocaleDateString()}</small>
-                </div>
-                ${game.replayDataUrl ? `<button class="watch-replay-btn icon-only" data-context="my-scores" data-difficulty="${diff}" data-score-index="${index}" title="Watch Replay">${watchIcon}</button>` : ''}
-            </div>
-            `;
-        }).join('');
-
         return `
-            <div class="leaderboard-entry-wrapper my-score-section">
-                <div class="leaderboard-entry section-header" data-difficulty="${diff}">
+            <div class="leaderboard-entry-wrapper my-score-entry" data-difficulty="${diff}">
+                <div class="my-score-card">
                     <div class="diff-title">${diff.charAt(0).toUpperCase() + diff.slice(1)}</div>
-                    <div class="dropdown-icon">▼</div>
-                </div>
-                <div class="score-list-container hidden">
-                    ${scores.length > 0 ? scoreListHtml : '<div style="padding:10px; text-align:center; color:#888; font-size: 0.9rem;">No scores yet</div>'}
+                    <div class="diff-stats">
+                        <span class="best-score">Best: ${bestScore}</span>
+                        <span class="games-count">${scores.length} Games</span>
+                    </div>
                 </div>
             </div>
         `;
     }).join('');
 
-    return headerHtml + dropdownsHtml;
+    return headerHtml + cardsHtml;
 }
 
 function getOrdinal(n) {
@@ -89,17 +75,6 @@ export function renderLeaderboardList(rankedPlayers, currentPage = 1, itemsPerPa
         const rankText = getOrdinal(rank);
         const watchIcon = `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>`;
 
-        const scoreListHtml = player.allScores.map((game, scoreIndex) => `
-            <div class="score-entry">
-                <div class="score-details">
-                    <span class="score-entry-score">Score: ${game.score}</span>
-                    <span class="score-entry-level">Level: ${game.level || 1}</span>
-                    <small class="score-entry-date">${new Date(game.timestamp).toLocaleDateString()}</small>
-                </div>
-                <button class="watch-replay-btn icon-only" data-index="${overallIndex}" data-score-index="${scoreIndex}" title="Watch Replay">${watchIcon}</button>
-            </div>
-        `).join('');
-
         return `
             <div class="leaderboard-entry-wrapper">
                 <div class="leaderboard-entry" data-index="${overallIndex}">
@@ -117,26 +92,55 @@ export function renderLeaderboardList(rankedPlayers, currentPage = 1, itemsPerPa
                     </div>
                     <button class="watch-replay-btn icon-only" data-index="${overallIndex}" title="Watch Best Replay">${watchIcon}</button>
                 </div>
-                <div class="score-list-container hidden">
-                    ${scoreListHtml}
-                </div>
             </div>
         `
     }).join('');
 }
 
-export function renderLeaderboardPagination(totalPages, currentPage) {
+export function renderDetailList(scores, currentPage = 1, itemsPerPage = 10, contextData = {}) {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const scoresOnPage = scores.slice(startIndex, endIndex);
+    const watchIcon = `<svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24"><path d="M8 5v14l11-7z"/></svg>`;
+
+    if (scores.length === 0) {
+        return '<div style="text-align: center; color: #888; padding: 20px;">No scores recorded yet.</div>';
+    }
+
+    return scoresOnPage.map((game, index) => {
+        const actualIndex = startIndex + index;
+        return `
+        <div class="score-entry">
+            <div class="score-details">
+                <span class="score-entry-score">Score: ${game.score}</span>
+                <span class="score-entry-level">Level: ${game.level || 1}</span>
+                <small class="score-entry-date">${new Date(game.timestamp).toLocaleDateString()}</small>
+            </div>
+            ${game.replayDataUrl ? `
+                <button class="watch-replay-btn icon-only" 
+                    data-context="detail-view" 
+                    data-score-index="${actualIndex}" 
+                    title="Watch Replay">
+                    ${watchIcon}
+                </button>` : ''
+            }
+        </div>
+    `}).join('');
+}
+
+export function renderLeaderboardPagination(totalPages, currentPage, type = 'main') {
     if (totalPages <= 1) return '';
+    const prefix = type === 'detail' ? 'detail-' : '';
 
     return `
-        <button id="first-page-btn" ${currentPage === 1 ? 'disabled' : ''} aria-label="First page">&lt;&lt;</button>
-        <button id="prev-page-btn" ${currentPage === 1 ? 'disabled' : ''} aria-label="Previous page">&lt;</button>
+        <button class="${prefix}page-btn" data-action="first" ${currentPage === 1 ? 'disabled' : ''} aria-label="First page">&lt;&lt;</button>
+        <button class="${prefix}page-btn" data-action="prev" ${currentPage === 1 ? 'disabled' : ''} aria-label="Previous page">&lt;</button>
         <div class="page-info">
             Page 
-            <input type="number" id="page-input" value="${currentPage}" min="1" max="${totalPages}"> 
+            <input type="number" class="${prefix}page-input" value="${currentPage}" min="1" max="${totalPages}"> 
             of ${totalPages}
         </div>
-        <button id="next-page-btn" ${currentPage === totalPages ? 'disabled' : ''} aria-label="Next page">&gt;</button>
-        <button id="last-page-btn" ${currentPage === totalPages ? 'disabled' : ''} aria-label="Last page">&gt;&gt;</button>
+        <button class="${prefix}page-btn" data-action="next" ${currentPage === totalPages ? 'disabled' : ''} aria-label="Next page">&gt;</button>
+        <button class="${prefix}page-btn" data-action="last" ${currentPage === totalPages ? 'disabled' : ''} aria-label="Last page">&gt;&gt;</button>
     `;
 }

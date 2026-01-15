@@ -34,10 +34,18 @@ document.addEventListener('DOMContentLoaded', () => {
         leaderboardBtn: document.getElementById('leaderboard-btn'),
         leaderboardView: document.getElementById('leaderboard-view'),
         closeLeaderboardBtn: document.getElementById('close-leaderboard-btn'),
+        leaderboardMainView: document.getElementById('leaderboard-main-view'),
         leaderboardList: document.getElementById('leaderboard-list'),
         leaderboardDifficultyFilters: document.getElementById('leaderboard-difficulty-filters'),
         leaderboardFilterBtns: document.querySelectorAll('.leaderboard-filter-btn'),
         leaderboardPagination: document.getElementById('leaderboard-pagination'),
+        
+        leaderboardDetailView: document.getElementById('leaderboard-detail-view'),
+        detailList: document.getElementById('detail-list'),
+        detailPagination: document.getElementById('detail-pagination'),
+        detailBackBtn: document.getElementById('detail-back-btn'),
+        detailTitle: document.getElementById('detail-title'),
+
         musicToggleBtn: document.getElementById('music-toggle-btn'),
         tapToRestart: document.getElementById('tap-to-restart')
     };

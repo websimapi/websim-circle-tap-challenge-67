@@ -1,5 +1,5 @@
 import { fetchLeaderboard, syncScores, fetchUserProfile } from './leaderboard-api.js';
-import { renderLeaderboardList, renderLeaderboardPagination, renderMyScores } from './leaderboard-render.js';
+import { renderLeaderboardList, renderLeaderboardPagination, renderMyScores, renderDetailList } from './leaderboard-render.js';
 
 export class LeaderboardController {
     constructor(elements, ui, callbacks) {
@@ -12,6 +12,15 @@ export class LeaderboardController {
             totalPages: 1,
             itemsPerPage: 10,
             currentDifficulty: 'easy'
+        };
+
+        this.detailState = {
+            active: false,
+            data: [], // array of score objects
+            currentPage: 1,
+            itemsPerPage: 8, // slightly fewer for detail view
+            title: '',
+            currentUser: null // if looking at another user's scores
         };
         
         this.data = {
@@ -30,25 +39,33 @@ export class LeaderboardController {
     _bindMethods() {
         this.handleFilterClick = this.handleFilterClick.bind(this);
         this.handlePaginationClick = this.handlePaginationClick.bind(this);
-        this.handlePaginationChange = this.handlePaginationChange.bind(this);
+        this.handleDetailPaginationClick = this.handleDetailPaginationClick.bind(this);
         this.handleListClick = this.handleListClick.bind(this);
+        this.handleBackClick = this.handleBackClick.bind(this);
+        this.handleDetailListClick = this.handleDetailListClick.bind(this);
     }
 
     _addEventListeners() {
         this.elements.leaderboardDifficultyFilters.addEventListener('click', this.handleFilterClick);
         this.elements.leaderboardPagination.addEventListener('click', this.handlePaginationClick);
-        this.elements.leaderboardPagination.addEventListener('change', this.handlePaginationChange);
         this.elements.leaderboardList.addEventListener('click', this.handleListClick);
+        
+        // Detail view listeners
+        this.elements.detailBackBtn.addEventListener('click', this.handleBackClick);
+        this.elements.detailPagination.addEventListener('click', this.handleDetailPaginationClick);
+        this.elements.detailList.addEventListener('click', this.handleDetailListClick);
     }
 
     async show(difficulty = 'easy') {
         if (this.callbacks.onInteraction) this.callbacks.onInteraction();
 
-        // Adjust items per page for mobile/small screens to avoid scrolling
+        // Adjust items per page for mobile/small screens
         const isSmallScreen = window.innerHeight < 750 || window.innerWidth < 480;
-        this.state.itemsPerPage = isSmallScreen ? 5 : 10;
+        this.state.itemsPerPage = isSmallScreen ? 5 : 8;
+        this.detailState.itemsPerPage = isSmallScreen ? 5 : 8;
         
         syncScores();
+        this.hideDetailView(); // Ensure we start on main list
         this.loadLeaderboard(difficulty);
     }
 
@@ -153,7 +170,7 @@ export class LeaderboardController {
         this.state.totalPages = totalPages;
 
         if (totalPages > 1) {
-            this.elements.leaderboardPagination.innerHTML = renderLeaderboardPagination(totalPages, currentPage);
+            this.elements.leaderboardPagination.innerHTML = renderLeaderboardPagination(totalPages, currentPage, 'main');
             this.ui.showPagination();
         } else {
             this.ui.hidePagination();
@@ -161,121 +178,168 @@ export class LeaderboardController {
     }
 
     handlePaginationClick(e) {
-        const target = e.target;
-        let pageChanged = false;
-        const { currentPage, totalPages } = this.state;
+        if (!e.target.dataset.action) return;
         
-        if (target.id === 'first-page-btn' && currentPage > 1) {
-            this.state.currentPage = 1;
-            pageChanged = true;
-        } else if (target.id === 'prev-page-btn' && currentPage > 1) {
-            this.state.currentPage--;
-            pageChanged = true;
-        } else if (target.id === 'next-page-btn' && currentPage < totalPages) {
-            this.state.currentPage++;
-            pageChanged = true;
-        } else if (target.id === 'last-page-btn' && currentPage < totalPages) {
-            this.state.currentPage = totalPages;
-            pageChanged = true;
-        }
+        const action = e.target.dataset.action;
+        const { currentPage, totalPages } = this.state;
+        let newPage = currentPage;
+        
+        if (action === 'first') newPage = 1;
+        else if (action === 'prev') newPage = Math.max(1, currentPage - 1);
+        else if (action === 'next') newPage = Math.min(totalPages, currentPage + 1);
+        else if (action === 'last') newPage = totalPages;
 
-        if (pageChanged) {
+        if (newPage !== currentPage) {
+            this.state.currentPage = newPage;
             this._render();
-            // Scroll to top of the leaderboard view to prevent disorientation
-            if (this.elements.leaderboardView) {
-                this.elements.leaderboardView.scrollTop = 0;
-            }
         }
     }
 
-    handlePaginationChange(e) {
-        const target = e.target;
-        if (target.id === 'page-input') {
-            let newPage = parseInt(target.value, 10);
-            if (!isNaN(newPage)) {
-                newPage = Math.max(1, Math.min(newPage, this.state.totalPages));
-                this.state.currentPage = newPage;
-                this._render();
-            }
+    // --- Detail View Logic ---
+
+    showDetailView(title, scores, user) {
+        this.detailState.active = true;
+        this.detailState.title = title;
+        this.detailState.data = scores;
+        this.detailState.currentPage = 1;
+        this.detailState.currentUser = user;
+
+        this.elements.leaderboardMainView.classList.add('hidden');
+        this.elements.leaderboardDetailView.classList.remove('hidden');
+        
+        this.elements.detailTitle.textContent = title;
+        
+        this._renderDetail();
+    }
+
+    hideDetailView() {
+        this.detailState.active = false;
+        this.detailState.data = [];
+        this.elements.leaderboardDetailView.classList.add('hidden');
+        this.elements.leaderboardMainView.classList.remove('hidden');
+    }
+
+    _renderDetail() {
+        const { data, currentPage, itemsPerPage } = this.detailState;
+        
+        this.elements.detailList.innerHTML = renderDetailList(data, currentPage, itemsPerPage);
+        
+        const totalPages = Math.ceil(data.length / itemsPerPage);
+        if (totalPages > 1) {
+            this.elements.detailPagination.innerHTML = renderLeaderboardPagination(totalPages, currentPage, 'detail');
+            this.elements.detailPagination.classList.remove('hidden');
+        } else {
+            this.elements.detailPagination.classList.add('hidden');
+        }
+    }
+
+    handleDetailPaginationClick(e) {
+        if (!e.target.dataset.action) return;
+        
+        const action = e.target.dataset.action;
+        const totalPages = Math.ceil(this.detailState.data.length / this.detailState.itemsPerPage);
+        let newPage = this.detailState.currentPage;
+
+        if (action === 'first') newPage = 1;
+        else if (action === 'prev') newPage = Math.max(1, newPage - 1);
+        else if (action === 'next') newPage = Math.min(totalPages, newPage + 1);
+        else if (action === 'last') newPage = totalPages;
+
+        if (newPage !== this.detailState.currentPage) {
+            this.detailState.currentPage = newPage;
+            this._renderDetail();
         }
     }
 
     async handleListClick(e) {
         const watchBtn = e.target.closest('.watch-replay-btn');
         const entry = e.target.closest('.leaderboard-entry');
+        const myScoreCard = e.target.closest('.my-score-entry');
 
         if (watchBtn) {
             e.stopPropagation();
             await this._handleReplayClick(watchBtn);
-        } else if (entry) {
-            const scoreList = entry.nextElementSibling;
-            if (scoreList && scoreList.classList.contains('score-list-container')) {
-                scoreList.classList.toggle('hidden');
-                entry.classList.toggle('expanded');
+            return;
+        } 
+
+        // Handle Main Leaderboard Entry Click
+        if (entry) {
+            const index = entry.dataset.index;
+            const player = this.data.rankedPlayers[index];
+            if (player) {
+                this.showDetailView(`${player.username}'s Scores`, player.allScores, { username: player.username });
             }
+        }
+        
+        // Handle My Scores Card Click
+        if (myScoreCard) {
+            const diff = myScoreCard.dataset.difficulty;
+            const scores = (this.userProfile && this.userProfile[diff]) ? this.userProfile[diff] : [];
+            // Sort by score
+            scores.sort((a,b) => b.score - a.score);
+            this.showDetailView(`My ${diff.charAt(0).toUpperCase() + diff.slice(1)} Scores`, scores, this.currentUser);
         }
     }
 
-    async _handleReplayClick(watchBtn) {
-        const context = watchBtn.dataset.context; // 'my-scores' or undefined (default leaderboard)
-        
-        let gameData, user;
-
-        if (context === 'my-scores') {
-            const difficulty = watchBtn.dataset.difficulty;
-            const scoreIndex = parseInt(watchBtn.dataset.scoreIndex);
-            
-            // Sort to match render order
-            const scores = (this.userProfile[difficulty] || []).sort((a, b) => b.score - a.score);
-            gameData = scores[scoreIndex];
-            user = this.currentUser;
-
-        } else {
-            const index = watchBtn.dataset.index;
-            const scoreIndex = watchBtn.dataset.scoreIndex;
-            const playerData = this.data.rankedPlayers[index];
-            user = { username: playerData.username }; // Minimal user obj
-            
-            gameData = scoreIndex !== undefined
-                ? playerData.allScores[scoreIndex]
-                : playerData.bestGameData;
+    async handleDetailListClick(e) {
+        const watchBtn = e.target.closest('.watch-replay-btn');
+        if (watchBtn) {
+            e.stopPropagation();
+            await this._handleDetailReplayClick(watchBtn);
         }
+    }
 
-        if (gameData && gameData.replayDataUrl) {
-            try {
-                const originalHtml = watchBtn.innerHTML;
-                watchBtn.innerHTML = '<span style="font-size: 0.6rem;">...</span>'; 
-                watchBtn.disabled = true;
+    handleBackClick() {
+        this.hideDetailView();
+    }
 
-                const response = await fetch(gameData.replayDataUrl);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const replayData = await response.json();
+    async _handleReplayClick(watchBtn) {
+        // Only handles Best Replay from main list now
+        const index = watchBtn.dataset.index;
+        const playerData = this.data.rankedPlayers[index];
+        const user = { username: playerData.username };
+        const gameData = playerData.bestGameData;
 
-                if (!replayData.config.currentUser) {
-                    replayData.config.currentUser = {
-                        username: user.username,
-                        avatar_url: `https://images.websim.com/avatar/${user.username}`
-                    };
-                }
+        await this._loadReplay(gameData, user, watchBtn);
+    }
 
-                if (this.callbacks.onReplay) {
-                    this.callbacks.onReplay(replayData);
-                }
-                
-                watchBtn.innerHTML = originalHtml;
-                watchBtn.disabled = false;
+    async _handleDetailReplayClick(watchBtn) {
+        const scoreIndex = parseInt(watchBtn.dataset.scoreIndex); // Absolute index in the data array
+        const gameData = this.detailState.data[scoreIndex];
+        const user = this.detailState.currentUser;
+        
+        await this._loadReplay(gameData, user, watchBtn);
+    }
 
-            } catch (fetchError) {
-                console.error("Error fetching replay data:", fetchError);
-                alert("Could not load replay.");
-                watchBtn.innerHTML = '<span style="font-size: 0.6rem;">X</span>';
-                setTimeout(() => {
-                    watchBtn.innerHTML = originalHtml;
-                    watchBtn.disabled = false;
-                }, 2000);
+    async _loadReplay(gameData, user, btn) {
+        if (!gameData || !gameData.replayDataUrl) return;
+
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span style="font-size: 0.6rem;">...</span>'; 
+        btn.disabled = true;
+
+        try {
+            const response = await fetch(gameData.replayDataUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const replayData = await response.json();
+
+            if (!replayData.config.currentUser) {
+                replayData.config.currentUser = {
+                    username: user.username,
+                    avatar_url: `https://images.websim.com/avatar/${user.username}`
+                };
             }
+
+            if (this.callbacks.onReplay) {
+                this.callbacks.onReplay(replayData);
+            }
+        } catch (fetchError) {
+            console.error("Error fetching replay data:", fetchError);
+            alert("Could not load replay.");
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
         }
     }
 }

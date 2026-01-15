@@ -100,19 +100,38 @@
         <button id="close-replay-btn" aria-label="Close replay">&times;</button>
     </div>
     <div id="leaderboard-view" class="hidden">
-        <button id="close-leaderboard-btn" aria-label="Close Leaderboard">&times;</button>
-        <h2>Leaderboard</h2>
-        <div id="leaderboard-difficulty-filters">
-            <button class="leaderboard-filter-btn active" data-difficulty="easy">Easy</button>
-            <button class="leaderboard-filter-btn" data-difficulty="medium">Medium</button>
-            <button class="leaderboard-filter-btn" data-difficulty="hard">Hard</button>
-            <button id="my-scores-btn" class="leaderboard-filter-btn" data-difficulty="mine">My Scores</button>
+        <!-- Main List View -->
+        <div id="leaderboard-main-view" class="view-container">
+            <button id="close-leaderboard-btn" aria-label="Close Leaderboard">&times;</button>
+            <h2>Leaderboard</h2>
+            <div id="leaderboard-difficulty-filters">
+                <button class="leaderboard-filter-btn active" data-difficulty="easy">Easy</button>
+                <button class="leaderboard-filter-btn" data-difficulty="medium">Medium</button>
+                <button class="leaderboard-filter-btn" data-difficulty="hard">Hard</button>
+                <button id="my-scores-btn" class="leaderboard-filter-btn" data-difficulty="mine">My Scores</button>
+            </div>
+            <div id="leaderboard-list" class="list-container">
+                <!-- Scores will be populated here -->
+            </div>
+            <div id="leaderboard-pagination" class="pagination-container hidden">
+                <!-- Pagination controls will be populated here -->
+            </div>
         </div>
-        <div id="leaderboard-list">
-            <!-- Scores will be populated here -->
-        </div>
-        <div id="leaderboard-pagination" class="hidden">
-            <!-- Pagination controls will be populated here -->
+
+        <!-- Detailed Score View -->
+        <div id="leaderboard-detail-view" class="view-container hidden">
+            <div class="detail-header">
+                <button id="detail-back-btn" class="icon-btn-small" aria-label="Back">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                </button>
+                <h3 id="detail-title">Details</h3>
+            </div>
+            <div id="detail-list" class="list-container">
+                <!-- Detailed scores list -->
+            </div>
+            <div id="detail-pagination" class="pagination-container hidden">
+                <!-- Detail pagination -->
+            </div>
         </div>
     </div>
     <script type="importmap">
