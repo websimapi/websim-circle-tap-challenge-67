@@ -22,13 +22,13 @@
 }
 
 .list-container {
-    flex: 1;
+    flex: 0 1 auto;
     width: 100%;
     max-width: 600px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    overflow: hidden; /* Prevent scrolling, use pagination */
+    overflow: hidden; 
 }
 
 .pagination-container {
@@ -254,19 +254,32 @@
     color: var(--accent-color);
 }
 
-.icon-btn-small {
-    background: rgba(255,255,255,0.1);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
+.back-nav-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 14px 6px 8px;
     color: var(--text-color);
+    font-weight: bold;
+    font-size: 0.9rem;
     cursor: pointer;
     position: absolute;
     left: 0;
+    transition: background 0.2s;
+    height: 36px;
+    z-index: 10;
+}
+
+.back-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.back-nav-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
 .score-entry {
