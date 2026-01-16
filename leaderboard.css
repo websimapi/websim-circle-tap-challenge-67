@@ -241,80 +241,98 @@
     align-items: center;
     width: 100%;
     max-width: 600px;
-    margin-bottom: 12px;
+    margin-bottom: 15px;
     flex-shrink: 0;
     gap: 12px;
+    position: relative;
+    justify-content: flex-start;
 }
 
-#detail-profile-container {
+.detail-header::after {
+    display: none;
+}
+
+#detail-header-content {
     flex-grow: 1;
     min-width: 0;
 }
 
-.profile-loading {
-    font-size: 0.8rem;
-    color: #888;
-    font-style: italic;
-}
-
-.compact-profile {
+.mini-profile-card {
     display: flex;
     align-items: center;
     background: rgba(255, 255, 255, 0.08);
-    border-radius: 12px;
-    padding: 6px 12px;
+    padding: 6px 10px;
+    border-radius: 30px;
     gap: 10px;
     width: 100%;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    max-width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.compact-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid var(--accent-color);
+.mini-profile-avatar-container {
     flex-shrink: 0;
 }
 
-.compact-info {
+.mini-profile-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-color);
+    object-fit: cover;
+    display: block;
+}
+
+.mini-profile-info {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     min-width: 0;
+    gap: 3px;
     flex-grow: 1;
 }
 
-.compact-username {
-    font-weight: bold;
+.mini-profile-username {
     font-size: 0.95rem;
+    font-weight: bold;
+    line-height: 1;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: #fff;
 }
 
-.compact-stats {
+.mini-profile-stats {
     display: flex;
     gap: 10px;
+    font-size: 0.75rem;
+    color: #bbb;
+    align-items: center;
 }
 
-.c-stat {
-    font-size: 0.75rem;
+.stat-pill {
     display: flex;
     gap: 3px;
     align-items: center;
 }
 
-.c-stat span {
+.stat-pill .l {
     color: #888;
-}
-
-.c-stat strong {
-    color: var(--accent-color);
-}
-
-.compact-username-only {
     font-weight: bold;
-    font-size: 1.1rem;
-    color: var(--text-color);
+    font-size: 0.65rem;
+}
+
+.stat-pill .v {
+    font-weight: bold;
+}
+.stat-pill.easy .v { color: var(--success-color); }
+.stat-pill.medium .v { color: #f07b3f; }
+.stat-pill.hard .v { color: var(--fail-color); }
+
+.mini-profile-fallback {
+    font-size: 1.2rem;
+    color: var(--accent-color);
+    font-weight: bold;
+    padding: 0 10px;
 }
 
 .back-nav-btn {
@@ -325,16 +343,16 @@
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    padding: 4px;
+    padding: 4px 12px;
     color: var(--text-color);
     font-weight: bold;
     font-size: 0.75rem;
     cursor: pointer;
     transition: background 0.2s;
     height: 36px;
-    flex-shrink: 0;
     z-index: 10;
-    width: 100%;
+    width: auto;
+    flex-shrink: 0;
 }
 
 .back-nav-btn:hover {

@@ -1,22 +1,32 @@
-export function renderCompactProfile(userProfile) {
-    if (!userProfile) return '';
+export function renderDetailHeader(userProfile) {
+    if (!userProfile) return '<div class="mini-profile-fallback">Details</div>';
+
     const { username } = userProfile;
     const avatarUrl = `https://images.websim.com/avatar/${username}`;
     
-    const getBest = (diff) => {
+    // Calculate bests
+    const difficulties = ['easy', 'medium', 'hard'];
+    const bestScores = {};
+    difficulties.forEach(diff => {
         const scores = userProfile[diff] || [];
-        return scores.length > 0 ? Math.max(...scores.map(s => s.score)) : '-';
-    };
+        if (scores.length > 0) {
+            bestScores[diff] = Math.max(...scores.map(s => s.score));
+        } else {
+            bestScores[diff] = '-';
+        }
+    });
 
     return `
-        <div class="compact-profile">
-            <img src="${avatarUrl}" alt="${username}" class="compact-avatar">
-            <div class="compact-info">
-                <div class="compact-username">${username}</div>
-                <div class="compact-stats">
-                    <div class="c-stat"><span>E</span> <strong>${getBest('easy')}</strong></div>
-                    <div class="c-stat"><span>M</span> <strong>${getBest('medium')}</strong></div>
-                    <div class="c-stat"><span>H</span> <strong>${getBest('hard')}</strong></div>
+        <div class="mini-profile-card">
+            <div class="mini-profile-avatar-container">
+                <img src="${avatarUrl}" class="mini-profile-avatar" alt="${username}">
+            </div>
+            <div class="mini-profile-info">
+                <div class="mini-profile-username">${username}</div>
+                <div class="mini-profile-stats">
+                    <div class="stat-pill easy" title="Easy Best"><span class="l">E</span><span class="v">${bestScores.easy}</span></div>
+                    <div class="stat-pill medium" title="Medium Best"><span class="l">M</span><span class="v">${bestScores.medium}</span></div>
+                    <div class="stat-pill hard" title="Hard Best"><span class="l">H</span><span class="v">${bestScores.hard}</span></div>
                 </div>
             </div>
         </div>

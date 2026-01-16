@@ -1,5 +1,5 @@
 import { fetchLeaderboard, syncScores, fetchUserProfile } from './leaderboard-api.js';
-import { renderLeaderboardList, renderLeaderboardPagination, renderMyScores, renderDetailList } from './leaderboard-render.js';
+import { renderLeaderboardList, renderLeaderboardPagination, renderMyScores, renderDetailList, renderDetailHeader } from './leaderboard-render.js';
 
 export class LeaderboardController {
     constructor(elements, ui, callbacks) {
@@ -19,8 +19,8 @@ export class LeaderboardController {
             data: [], // array of score objects
             currentPage: 1,
             itemsPerPage: 8, // slightly fewer for detail view
-            title: '',
-            currentUser: null // if looking at another user's scores
+            userProfile: null,
+            currentUser: null 
         };
         
         this.data = {
@@ -197,30 +197,19 @@ export class LeaderboardController {
 
     // --- Detail View Logic ---
 
-    async showDetailView(title, scores, user) {
+    showDetailView(scores, userProfile) {
         this.detailState.active = true;
-        this.detailState.title = title;
         this.detailState.data = scores;
         this.detailState.currentPage = 1;
-        this.detailState.currentUser = user;
+        this.detailState.userProfile = userProfile;
+        this.detailState.currentUser = userProfile ? { username: userProfile.username } : null;
 
         this.elements.leaderboardMainView.classList.add('hidden');
         this.elements.leaderboardDetailView.classList.remove('hidden');
         
-        // Show loading state for profile
-        this.elements.detailProfileContainer.innerHTML = '<div class="profile-loading">Loading profile...</div>';
+        this.elements.detailHeaderContent.innerHTML = renderDetailHeader(userProfile);
         
         this._renderDetail();
-
-        // Fetch full profile to show compact E/M/H stats
-        try {
-            const profile = await fetchUserProfile(user.username);
-            const { renderCompactProfile } = await import('./leaderboard-render.js');
-            this.elements.detailProfileContainer.innerHTML = renderCompactProfile(profile);
-        } catch (e) {
-            console.warn("Failed to load compact profile", e);
-            this.elements.detailProfileContainer.innerHTML = `<div class="compact-username-only">${user.username}</div>`;
-        }
     }
 
     hideDetailView() {
@@ -278,7 +267,18 @@ export class LeaderboardController {
             const index = entry.dataset.index;
             const player = this.data.rankedPlayers[index];
             if (player) {
-                this.showDetailView(`${player.username}'s Scores`, player.allScores, { username: player.username });
+                // Fetch full profile to get cross-difficulty stats
+                try {
+                    // Show a quick loading state if needed, or just wait
+                    this.elements.detailHeaderContent.innerHTML = '<div style="font-size:0.8rem;">Loading profile...</div>';
+                    
+                    const profile = await fetchUserProfile(player.username);
+                    const userProfile = profile || { username: player.username };
+                    this.showDetailView(player.allScores, userProfile);
+                } catch (e) {
+                    console.error("Error fetching detail profile", e);
+                    this.showDetailView(player.allScores, { username: player.username });
+                }
             }
         }
         
@@ -288,7 +288,7 @@ export class LeaderboardController {
             const scores = (this.userProfile && this.userProfile[diff]) ? this.userProfile[diff] : [];
             // Sort by score
             scores.sort((a,b) => b.score - a.score);
-            this.showDetailView(`My ${diff.charAt(0).toUpperCase() + diff.slice(1)} Scores`, scores, this.currentUser);
+            this.showDetailView(scores, this.userProfile);
         }
     }
 
