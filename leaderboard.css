@@ -237,45 +237,49 @@
 
 /* Detail View Styles */
 .detail-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: 75px 1fr 75px;
     align-items: center;
     width: 100%;
     max-width: 600px;
     margin-bottom: 15px;
-    position: relative;
     flex-shrink: 0;
+    gap: 4px;
+}
+
+.detail-header::after {
+    content: "";
+    display: block;
 }
 
 #detail-title {
-    flex: 1;
     text-align: center;
     margin: 0;
-    font-size: clamp(0.7rem, 4.5vw, calc(1.3rem * var(--ui-scale)));
+    font-size: clamp(0.45rem, 3.8vw, calc(1.2rem * var(--ui-scale)));
     color: var(--accent-color);
-    padding: 0 115px; /* Increased padding to safely clear Back and Close buttons on all devices */
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     min-width: 0;
+    line-height: 1.2;
 }
 
 .back-nav-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 4px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    padding: 6px 14px 6px 8px;
+    padding: 4px 8px;
     color: var(--text-color);
     font-weight: bold;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     cursor: pointer;
-    position: absolute;
-    left: 0;
     transition: background 0.2s;
-    height: 36px;
+    height: 32px;
     z-index: 10;
+    width: 70px;
 }
 
 .back-nav-btn:hover {
