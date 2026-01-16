@@ -250,9 +250,9 @@
     flex: 1;
     text-align: center;
     margin: 0;
-    font-size: calc(1.3rem * var(--ui-scale));
+    font-size: clamp(0.7rem, 4.5vw, calc(1.3rem * var(--ui-scale)));
     color: var(--accent-color);
-    padding: 0 95px; /* Prevent overlap with absolute positioned Back and Close buttons */
+    padding: 0 115px; /* Increased padding to safely clear Back and Close buttons on all devices */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
