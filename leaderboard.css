@@ -238,7 +238,7 @@
 /* Detail View Styles */
 .detail-header {
     display: grid;
-    grid-template-columns: 75px 1fr 75px;
+    grid-template-columns: minmax(65px, 75px) 1fr minmax(65px, 75px);
     align-items: center;
     width: 100%;
     max-width: 600px;
@@ -255,10 +255,10 @@
 #detail-title {
     text-align: center;
     margin: 0;
-    font-size: clamp(0.45rem, 3.8vw, calc(1.2rem * var(--ui-scale)));
+    font-size: clamp(0.35rem, 2.75vw, calc(1.2rem * var(--ui-scale)));
     color: var(--accent-color);
     white-space: nowrap;
-    overflow: hidden;
+    overflow: visible;
     min-width: 0;
     line-height: 1.2;
 }
@@ -267,19 +267,19 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
+    gap: 2px;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255,255,255,0.2);
     border-radius: 20px;
-    padding: 4px 8px;
+    padding: 4px;
     color: var(--text-color);
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     cursor: pointer;
     transition: background 0.2s;
     height: 32px;
     z-index: 10;
-    width: 70px;
+    width: 100%;
 }
 
 .back-nav-btn:hover {
