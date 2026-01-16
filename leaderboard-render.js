@@ -1,3 +1,28 @@
+export function renderCompactProfile(userProfile) {
+    if (!userProfile) return '';
+    const { username } = userProfile;
+    const avatarUrl = `https://images.websim.com/avatar/${username}`;
+    
+    const getBest = (diff) => {
+        const scores = userProfile[diff] || [];
+        return scores.length > 0 ? Math.max(...scores.map(s => s.score)) : '-';
+    };
+
+    return `
+        <div class="compact-profile">
+            <img src="${avatarUrl}" alt="${username}" class="compact-avatar">
+            <div class="compact-info">
+                <div class="compact-username">${username}</div>
+                <div class="compact-stats">
+                    <div class="c-stat"><span>E</span> <strong>${getBest('easy')}</strong></div>
+                    <div class="c-stat"><span>M</span> <strong>${getBest('medium')}</strong></div>
+                    <div class="c-stat"><span>H</span> <strong>${getBest('hard')}</strong></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
 export function renderMyScores(userProfile) {
     if (!userProfile) return '<div style="text-align:center; padding: 20px; color: #888;">No profile found. Play a game to create one!</div>';
 

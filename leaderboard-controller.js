@@ -197,7 +197,7 @@ export class LeaderboardController {
 
     // --- Detail View Logic ---
 
-    showDetailView(title, scores, user) {
+    async showDetailView(title, scores, user) {
         this.detailState.active = true;
         this.detailState.title = title;
         this.detailState.data = scores;
@@ -207,9 +207,20 @@ export class LeaderboardController {
         this.elements.leaderboardMainView.classList.add('hidden');
         this.elements.leaderboardDetailView.classList.remove('hidden');
         
-        this.elements.detailTitle.textContent = title;
+        // Show loading state for profile
+        this.elements.detailProfileContainer.innerHTML = '<div class="profile-loading">Loading profile...</div>';
         
         this._renderDetail();
+
+        // Fetch full profile to show compact E/M/H stats
+        try {
+            const profile = await fetchUserProfile(user.username);
+            const { renderCompactProfile } = await import('./leaderboard-render.js');
+            this.elements.detailProfileContainer.innerHTML = renderCompactProfile(profile);
+        } catch (e) {
+            console.warn("Failed to load compact profile", e);
+            this.elements.detailProfileContainer.innerHTML = `<div class="compact-username-only">${user.username}</div>`;
+        }
     }
 
     hideDetailView() {

@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailList: document.getElementById('detail-list'),
         detailPagination: document.getElementById('detail-pagination'),
         detailBackBtn: document.getElementById('detail-back-btn'),
-        detailTitle: document.getElementById('detail-title'),
+        detailProfileContainer: document.getElementById('detail-profile-container'),
 
         musicToggleBtn: document.getElementById('music-toggle-btn'),
         tapToRestart: document.getElementById('tap-to-restart')
